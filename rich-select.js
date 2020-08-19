@@ -652,7 +652,9 @@ class RichSelect extends LitElement {
         this._selectedOption.selected = false;
       }
       this._selectedOption = val;
-      this.chosen.innerHTML = val.content;
+      if (this.chosen) {
+        this.chosen.innerHTML = val.content;
+      }
     }
   }
   _consider(val) {
