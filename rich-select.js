@@ -1,17 +1,228 @@
-const objKeyCodes = {
-  ENTER: 13,
-  ESC: 27,
-  ARROW_LEFT: 37,
-  ARROW_UP: 38,
-  ARROW_RIGHT: 39,
-  ARROW_DOWN: 40,
-  HOME: 36,
-  END: 35
-};
-const validateKeyCode = (keyCode) => keyCode > 47 && keyCode < 58 || keyCode === 32 || keyCode > 64 && keyCode < 91 || keyCode > 95 && keyCode < 112 || keyCode > 185 && keyCode < 193 || keyCode > 218 && keyCode < 223;
-const template = document.createElement('template');
-template.innerHTML = `
-  <style>
+import {
+  LitElement,
+  html,
+  css
+} from 'lit-element';
+
+
+/**
+ * `rich-option`
+ * RichOption
+ *
+ * @customElement rich-option
+ * @polymer
+ * @litElement
+ * @demo demo/index.html
+ */
+
+class RichOption extends LitElement {
+  static get is() {
+    return 'rich-option';
+  }
+
+  static get properties() {
+    return {
+      selected: {
+        type: String
+      },
+      considered: {
+        type: String
+      },
+      disabled: {
+        type: String
+      },
+      value: {
+        type: String
+      },
+      title: {
+        type: String
+      },
+      record: {
+        type: String
+      },
+      content: {
+        type: String
+      }
+    }
+  }
+
+  static get styles() {
+    return css`
+      :host {
+        display: block;
+      }
+    `;
+  }
+
+  constructor() {
+    super();
+  }
+
+  connectedCallback() {
+    if (this.slot !== 'option') {
+      this.slot = '';
+    }
+    this._upgradeProperty('selected');
+    this._upgradeProperty('considered');
+    this._upgradeProperty('disabled');
+    this.shadowRoot.innerHTML = this.innerHTML;
+  }
+
+  attributeChangedCallback(name, oldVal, newVal) {
+    if (this.parentNode._transcend) {
+      const val = this._haveValidParent() && !this.disabled;
+      if (this.selected && val) {
+        this.parentNode._transcend(this);
+      }
+      if (this.considered && val) {
+        this.parentNode._consider(this);
+        if (this.disabled) {
+          this.selected = !1;
+          this.considered = !1;
+        }
+      }
+    }
+  }
+
+  set selected(val) {
+    if (val) {
+      this.setAttribute('selected', '');
+    } else {
+      this.removeAttribute('selected');
+    }
+  }
+  get selected() {
+    return this.hasAttribute('selected');
+  }
+  set considered(val) {
+    if (val) {
+      this.setAttribute('considered', '');
+    } else {
+      this.removeAttribute('considered');
+    }
+  }
+  get considered() {
+    return this.hasAttribute('considered');
+  }
+  set disabled(val) {
+    if (val) {
+      this.setAttribute('disabled', '');
+    } else {
+      this.removeAttribute('disabled');
+    }
+  }
+  get disabled() {
+    return this.hasAttribute('disabled');
+  }
+  set value(val) {
+    if (val) {
+      this.setAttribute('value', val);
+    } else {
+      this.removeAttribute('value');
+    }
+  }
+  get value() {
+    if (this.hasAttribute('value')) {
+      return this.getAttribute('value');
+    }
+    const val = this.innerText.trim().toLowerCase();
+    return (val || this.title);
+  }
+  set title(val) {
+    if (val) {
+      this.setAttribute('title', val);
+    } else {
+      this.removeAttribute('title');
+    }
+  }
+  get title() {
+    return this.hasAttribute('title') ? this.getAttribute('title') : '';
+  }
+  set record(val) {
+    if (val) {
+      this.setAttribute('record', val);
+    } else {
+      this.removeAttribute('record');
+    }
+  }
+  get record() {
+    return this.hasAttribute('record') ? this.getAttribute('record') : this.title;
+  }
+  set slot(val) {
+    this.setAttribute('slot', 'option');
+  }
+  get slot() {
+    return this.hasAttribute('slot') ? this.getAttribute('slot') : '';
+  }
+  get content() {
+    return this.title ? this.title : this.innerHTML;
+  }
+
+  _upgradeProperty(prop) {
+    if (Object.prototype.hasOwnProperty.call(this, prop)) {
+      let val = this[prop];
+      delete this[prop];
+      this[prop] = val;
+    }
+  }
+
+  _haveValidParent() {
+    return !!this.parentNode && this.parentNode.tagName.toLowerCase() === 'rich-select';
+  }
+}
+
+window.customElements.define(RichOption.is, RichOption);
+
+/**
+ * `rich-select`
+ * RichSelect
+ *
+ * @customElement rich-select
+ * @polymer
+ * @litElement
+ * @demo demo/index.html
+ */
+
+class RichSelect extends LitElement {
+  static get is() {
+    return 'rich-select';
+  }
+
+  static get properties() {
+    return {
+      value: {
+        type: String
+      },
+      expanded: {
+        type: Boolean
+      },
+      disabled: {
+        type: Boolean
+      }
+    };
+  }
+
+  static get styles() {
+    return css`
+    /** CSS VARIABLES
+      --selectOptions-max-height
+      --selectOptions-shadow
+      --selectOptions-background
+      --selectOptions-border
+      --selectOptions-zIndex
+      --animated-time
+      --input-outline
+      --input-margin
+      --input-width
+      --input-border-width
+      --input-border-color
+      --input-border-style
+      --input-font
+      --input-padding
+      --input-color
+      --input-background
+      QUEDAN MAS...
+     */
       :host {
         display: inline-block;
         position: relative;
@@ -122,7 +333,8 @@ template.innerHTML = `
         border-top: var(--option-border-top, none);
         border-left: var(--option-border-left, none);
         border-right: var(--option-border-right, none);
-        height: auto;
+        height: 20px;
+        color:#000;
         line-height: normal;
         transition: all 0.1s linear;
       }
@@ -188,138 +400,83 @@ template.innerHTML = `
       :host-context(.dark) ::slotted(rich-option[selected]:not([considered])){
         background: #373c44; color: #89bd55;
       }
-  </style>
-  <div id="caller">
-    <span id="chosen"></span> <span id="arrow"><span>&#8250;</span></span>
-  </div>
-  <section id="selectOptions">
-    <div id="search">
-      <input type="text" spellcheck="false" tabindex="-1">
-    </div>
-    <div id="holder">
-      <slot name="option" maxlength="20"></slot>
-    </div>
-  </section>`;
+    `;
+  }
 
-class RichOption extends HTMLElement {
-  static get observedAttributes() {
-    return ['selected', 'considered', 'disabled'];
-  }
-  set selected(val) {
-    if (val) {
-      this.setAttribute('selected', '');
-    } else {
-      this.removeAttribute('selected');
-    }
-  }
-  get selected() {
-    return this.hasAttribute('selected');
-  }
-  set considered(val) {
-    if (val) {
-      this.setAttribute('considered', '');
-    } else {
-      this.removeAttribute('considered');
-    }
-  }
-  get considered() {
-    return this.hasAttribute('considered');
-  }
-  set disabled(val) {
-    if (val) {
-      this.setAttribute('disabled', '');
-    } else {
-      this.removeAttribute('disabled');
-    }
-  }
-  get disabled() {
-    return this.hasAttribute('disabled');
-  }
-  set value(val) {
-    if (val) {
-      this.setAttribute('value', val);
-    } else {
-      this.removeAttribute('value');
-    }
-  }
-  get value() {
-    if (this.hasAttribute('value')) {
-      return this.getAttribute('value');
-    }
-    const val = this.innerText.trim().toLowerCase();
-    return (val || this.title);
-  }
-  set title(val) {
-    if (val) {
-      this.setAttribute('title', val);
-    } else {
-      this.removeAttribute('title');
-    }
-  }
-  get title() {
-    return this.hasAttribute('title') ? this.getAttribute('title') : '';
-  }
-  set record(val) {
-    if (val) {
-      this.setAttribute('record', val);
-    } else {
-      this.removeAttribute('record');
-    }
-  }
-  get record() {
-    return this.hasAttribute('record') ? this.getAttribute('record') : this.title;
-  }
-  set slot(val) {
-    this.setAttribute('slot', 'option');
-  }
-  get slot() {
-    return this.hasAttribute('slot') ? this.getAttribute('slot') : '';
-  }
-  get content() {
-    return this.title ? this.title : this.innerHTML;
-  }
   constructor() {
     super();
+    this._onSlotChange = this._onSlotChange.bind(this);
+    this._onCallerClick = this._onCallerClick.bind(this);
+    this._onKeyUp = this._onKeyUp.bind(this);
+    this.objKeyCodes = {
+      ENTER: 13,
+      ESC: 27,
+      ARROW_LEFT: 37,
+      ARROW_UP: 38,
+      ARROW_RIGHT: 39,
+      ARROW_DOWN: 40,
+      HOME: 36,
+      END: 35
+    };
   }
+
   connectedCallback() {
-    if (this.slot !== 'option') {
-      this.slot = '';
-    }
-    this._upgradeProperty('selected');
-    this._upgradeProperty('considered');
-    this._upgradeProperty('disabled');
+    super.connectedCallback();
+    this.addEventListener('blur', this._onBlur);
+    this.addEventListener('mousedown', this._onMouseDown);
+    this.addEventListener('mouseup', this._onMouseUp);
+    this.addEventListener('keydown', this._onKeyDown);
   }
-  attributeChangedCallback() {
-    const val = this._haveValidParent() && !this.disabled;
-    if (this.selected && val) {
-      this.parentNode._transcend(this);
-    }
-    if (this.considered && val) {
-      this.parentNode._consider(this);
-      if (this.disabled) {
-        this.selected = !1;
-        this.considered = !1;
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this.caller.removeEventListener('click', this._onCallerClick);
+    this.input.removeEventListener('keyup', this._onKeyUp);
+    this.removeEventListener('blur', this._onBlur);
+    this.removeEventListener('mousedown', this._onMouseDown);
+    this.removeEventListener('mouseup', this._onMouseUp);
+    this.removeEventListener('keydown', this._onKeyDown);
+  }
+
+  firstUpdated() {
+    this._optionSlot = this.shadowRoot.querySelector('slot[name=option]');
+    this.caller = this.shadowRoot.querySelector('#caller');
+    this.chosen = this.caller.firstElementChild;
+    this.arrowElm = this.caller.children[1];
+    this.selectOptions = this.shadowRoot.querySelector('#selectOptions');
+    this.searchElm = this.selectOptions.firstElementChild;
+    this.input = this.searchElm.firstElementChild;
+    this.holder = this.selectOptions.children[1];
+    this._animated = this.hasAttribute('animated');
+    this._optionSlot.addEventListener('slotchange', this._onSlotChange.bind(this));
+    this.caller.addEventListener('click', this._onCallerClick.bind(this));
+    this.input.addEventListener('keyup', this._onKeyUp);
+    document.addEventListener('scroll', () => {
+      if (this.expanded) {
+        this.expanded = false;
+        this.focus();
       }
+    });
+
+    if (!this._animated) {
+      this._setHidden(true);
     }
   }
-  _upgradeProperty(prop) {
-    if (Object.prototype.hasOwnProperty.call(this, prop)) {
-      let val = this[prop];
-      delete this[prop];
-      this[prop] = val;
+
+  attributeChangedCallback(name, oldVal, newVal) {
+    if (this.expanded) {
+      this._expand();
+    } else {
+      this._collapse();
+    }
+    if (this.disabled) {
+      this.blur();
+      this.setAttribute('tabindex', '-1');
+    } else {
+      this.setAttribute('tabindex', 0);
     }
   }
-  _haveValidParent() {
-    return !!this.parentNode && this.parentNode.tagName.toLowerCase() === 'rich-select';
-  }
-}
-customElements.define('rich-option', RichOption);
 
-
-class RichSelect extends HTMLElement {
-  static get observedAttributes() {
-    return ['expanded', 'disabled'];
-  }
   set value(val) {
     if (typeof val === 'string' || typeof val === 'number') {
       const allValidOptions = this._allValidOptions();
@@ -353,67 +510,7 @@ class RichSelect extends HTMLElement {
   get disabled() {
     return this.hasAttribute('disabled');
   }
-  constructor() {
-    super();
-    this._onSlotChange = this._onSlotChange.bind(this);
-    this._onCallerClick = this._onCallerClick.bind(this);
-    this._onKeyUp = this._onKeyUp.bind(this);
-    this.attachShadow({
-      mode: 'open'
-    });
-    this.shadowRoot.appendChild(template.content.cloneNode(true));
-    this._optionSlot = this.shadowRoot.querySelector('slot[name=option]');
-    this.caller = this.shadowRoot.querySelector('#caller');
-    this.chosen = this.caller.firstElementChild;
-    this.arrowElm = this.caller.children[1];
-    this.selectOptions = this.shadowRoot.querySelector('#selectOptions');
-    this.searchElm = this.selectOptions.firstElementChild;
-    this.input = this.searchElm.firstElementChild;
-    this.holder = this.selectOptions.children[1];
-    this._animated = this.hasAttribute('animated');
-    this._optionSlot.addEventListener('slotchange', this._onSlotChange);
-    this.caller.addEventListener('click', this._onCallerClick);
-    this.input.addEventListener('keyup', this._onKeyUp);
-    document.addEventListener('scroll', () => {
-      if (this.expanded) {
-        this.expanded = false;
-        this.focus();
-      }
-    });
-    if (!this._animated) {
-      this._setHidden(true);
-    }
-  }
-  connectedCallback() {
-    this.addEventListener('blur', this._onBlur);
-    this.addEventListener('mousedown', this._onMouseDown);
-    this.addEventListener('mouseup', this._onMouseUp);
-    this.addEventListener('keydown', this._onKeyDown);
-    customElements.whenDefined('rich-option').then(() => {
-      this._initializing();
-    });
-  }
-  disconnectedCallback() {
-    this.caller.removeEventListener('click', this._onCallerClick);
-    this.input.removeEventListener('keyup', this._onKeyUp);
-    this.removeEventListener('blur', this._onBlur);
-    this.removeEventListener('mousedown', this._onMouseDown);
-    this.removeEventListener('mouseup', this._onMouseUp);
-    this.removeEventListener('keydown', this._onKeyDown);
-  }
-  attributeChangedCallback() {
-    if (this.expanded) {
-      this._expand();
-    } else {
-      this._collapse();
-    }
-    if (this.disabled) {
-      this.blur();
-      this.setAttribute('tabindex', '-1');
-    } else {
-      this.setAttribute('tabindex', 0);
-    }
-  }
+
   _onSlotChange() {
     this._initializing();
   }
@@ -446,24 +543,24 @@ class RichSelect extends HTMLElement {
   _onKeyDown(ev) {
     let opt;
     switch (ev.keyCode) {
-      case objKeyCodes.HOME:
+      case this.objKeyCodes.HOME:
         this._expandedOption(ev, this._firstOption());
         break;
-      case objKeyCodes.ARROW_UP:
+      case this.objKeyCodes.ARROW_UP:
         this._expandedOption(ev, this._previousOption());
         break;
-      case objKeyCodes.ARROW_DOWN:
+      case this.objKeyCodes.ARROW_DOWN:
         this._expandedOption(ev, this._nextOption());
         break;
-      case objKeyCodes.END:
+      case this.objKeyCodes.END:
         this._expandedOption(ev, this._lastOption());
         break;
-      case objKeyCodes.ESC:
+      case this.objKeyCodes.ESC:
         ev.preventDefault();
         this.expanded = false;
         this.focus();
         break;
-      case objKeyCodes.ENTER:
+      case this.objKeyCodes.ENTER:
         ev.preventDefault();
         if (this.expanded) {
           if (this._consideredOption) {
@@ -477,7 +574,7 @@ class RichSelect extends HTMLElement {
         break;
       default:
         if (!this.expanded) {
-          if (validateKeyCode(ev.keyCode)) {
+          if (this.validateKeyCode(ev.keyCode)) {
             this.input.focus();
             this.expanded = true;
           }
@@ -493,16 +590,29 @@ class RichSelect extends HTMLElement {
   _onBlur() {
     this.expanded = false;
   }
+
+  _getSelected(allOptions) {
+    for (let option of allOptions) {
+      if (option.hasAttribute('selected')) {
+        return option;
+      }
+    }
+    return null;
+  }
+
   _initializing() {
-    const val = this._allOptions();
-    if (!this._selectedOption && val.length) {
+    const allOptions = this._allOptions();
+    this._selectedOption = this._getSelected(allOptions);
+    if (!this._selectedOption && allOptions.length) {
       this._firstOption().selected = true;
     }
     if (!this.hasAttribute('tabindex')) {
       this.setAttribute('tabindex', '0');
-      this.options = val;
+      this.options = allOptions;
     }
+    this.chosen.innerHTML = this.querySelector('rich-option[selected]').innerHTML;
   }
+
   _expand() {
     this._setHidden(false);
     this._attachSelectOptionsToCaller();
@@ -671,5 +781,29 @@ class RichSelect extends HTMLElement {
     });
     this.dispatchEvent(event);
   }
+
+  validateKeyCode(keyCode) {
+    return keyCode > 47 && keyCode < 58 || keyCode === 32 || keyCode > 64 && keyCode < 91 || keyCode > 95 && keyCode < 112 || keyCode > 185 && keyCode < 193 || keyCode > 218 && keyCode < 223;
+  }
+
+  render() {
+    return html`
+      <div id="caller">
+        <span id="chosen"></span>
+        <span id="arrow">
+          <span>&#8250;</span>
+        </span>
+      </div>
+      <section id="selectOptions">
+        <div id="search">
+          <input type="text" spellcheck="false" tabindex="-1">
+        </div>
+        <div id="holder">
+          <slot name="option" maxlength="20"></slot>
+        </div>
+      </section>
+    `;
+  }
 }
-customElements.define('rich-select', RichSelect);
+
+window.customElements.define(RichSelect.is, RichSelect);
