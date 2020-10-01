@@ -69,16 +69,18 @@ class RichOption extends LitElement {
   }
 
   attributeChangedCallback(name, oldVal, newVal) {
-    if (this.parentNode._transcend) {
-      const val = this._haveValidParent() && !this.disabled;
-      if (this.selected && val) {
-        this.parentNode._transcend(this);
-      }
-      if (this.considered && val) {
-        this.parentNode._consider(this);
-        if (this.disabled) {
-          this.selected = !1;
-          this.considered = !1;
+    if (this.parentNode) {
+      if (this.parentNode._transcend) {
+        const val = this._haveValidParent() && !this.disabled;
+        if (this.selected && val) {
+          this.parentNode._transcend(this);
+        }
+        if (this.considered && val) {
+          this.parentNode._consider(this);
+          if (this.disabled) {
+            this.selected = !1;
+            this.considered = !1;
+          }
         }
       }
     }
