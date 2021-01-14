@@ -127,7 +127,7 @@ class RichOption extends LitElement {
     if (this.hasAttribute('value')) {
       return this.getAttribute('value');
     }
-    const val = this.innerText.trim().toLowerCase();
+    const val = this.innerText.trim();
     return (val || this.title);
   }
   set title(val) {
