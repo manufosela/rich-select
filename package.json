@@ -1,7 +1,7 @@
 {
   "name": "rich-select",
   "description": "Lit-Element webcomponent rich-select",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "main": "rich-select.js",
   "repository": {
     "type": "git",

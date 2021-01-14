@@ -169,7 +169,7 @@ class RichOption extends LitElement {
   }
 
   _haveValidParent() {
-    return !!this.parentNode && this.parentNode.tagName.toLowerCase() === 'rich-select';
+    return !!this.parentNode && this.parentNode.tagName === 'RICH-SELECT';
   }
 }
 
@@ -610,8 +610,8 @@ class RichSelect extends LitElement {
     }
     if (!this.hasAttribute('tabindex')) {
       this.setAttribute('tabindex', '0');
-      this.options = allOptions;
     }
+    this.options = allOptions;
     this.chosen.innerHTML = this.querySelector('rich-option[selected]').innerHTML;
   }
 
@@ -698,7 +698,7 @@ class RichSelect extends LitElement {
     }
   }
   _isValidOption(val) {
-    return val instanceof RichOption && val.tagName.toLowerCase() === 'rich-option';
+    return val instanceof RichOption && val.tagName === 'RICH-OPTION';
   }
   _isValidAndEnabled(val) {
     return this._isValidOption(val) && !val.disabled;
